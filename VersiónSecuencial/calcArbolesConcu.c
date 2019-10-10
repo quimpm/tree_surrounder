@@ -4,6 +4,8 @@
 
 #include <ConvexHull.h>
 
+#include <pthread.h>
+
 #define DMaxArboles 	25
 #define DMaximoCoste 999999
 #define S 10000
@@ -73,7 +75,7 @@ TBosque ArbolesEntrada;
 
 bool LeerFicheroEntrada(char *PathFicIn);
 bool GenerarFicheroSalida(TListaArboles optimo, char *PathFicOut);
-TListaArboles CalcularCercaOptima();
+TListaArboles CalcularCercaOptima(int n_threads);
 void OrdenarArboles();
 TListaArboles CalcularCombinacionOptima(int PrimeraCombinacion, int UltimaCombinacion);
 int EvaluarCombinacionListaArboles(int Combinacion);
@@ -93,7 +95,7 @@ int main(int argc, char *argv[])
 {
 	TListaArboles Optimo;
 	
-	if (argc<2 || argc>3)
+	if (argc<2 || argc>4)
 		printf("Error Argumentos. Usage: CalcArboles <Fichero_Entrada> [<Fichero_Salida>]");
 
 	if (!LeerFicheroEntrada(argv[1]))
@@ -102,7 +104,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	Optimo = CalcularCercaOptima();
+	Optimo = CalcularCercaOptima(atoi(argv[3]));
 	/*if (!CalcularCercaOptima(&Optimo))
 	{
 		printf("Error CalcularCercaOptima.\n");
@@ -229,7 +231,7 @@ bool GenerarFicheroSalida(TListaArboles Optimo, char *PathFicOut)
 
 
 
-TListaArboles CalcularCercaOptima()
+TListaArboles CalcularCercaOptima(int n_threads)
 {
 	int MaxCombinaciones;
 
@@ -241,7 +243,22 @@ TListaArboles CalcularCercaOptima()
 
 	/* C�culo �timo */
 	TListaArboles Optimo;
-	Optimo = CalcularCombinacionOptima(1, MaxCombinaciones);
+
+	
+	int n = 2;
+	int bound = MaxCombinaciones / n;
+	pthread_t tids[n];
+	/*asd*/
+	PtrListaArboles Optimal1, Optimal2;
+	int bounds[2];
+	for(int i = 0; i < n; i++){ /* Canviar 3 per nombre de threads!*/
+	
+		bounds[0] = i*MaxCombinaciones/2;
+		bounds[1] = (i+1)*MaxCombinaciones/2;
+		pthread_create(&tids[i], NULL, CalcularCombinacionOptima, bounds);
+	}
+	pthread_join(tids[0], &Optimal1);
+	pthread_join(tids[1], &Optimal2);
 
 	return Optimo;
 }
@@ -292,6 +309,10 @@ void OrdenarArboles()
 
 TListaArboles CalcularCombinacionOptima(int PrimeraCombinacion, int UltimaCombinacion)
 {
+
+	printf("Sóc un thread i la primera combinació és %d\n", PrimeraCombinacion);
+
+
 	TListaArboles Optimo;
 	Optimo.NumArboles = 0;
 	Optimo.Coste = DMaximoCoste;
