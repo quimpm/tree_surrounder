@@ -52,7 +52,13 @@ struct ListaArboles
 };
 typedef struct ListaArboles TListaArboles, *PtrListaArboles;
 
-
+//Estructura pasada a los threads como argumento
+struct arg_struct 
+{
+	int			lower_bound;
+	int			upper_bound;
+};
+typedef struct arg_struct arg_struct;
 
 // Vector est�ico Coordenadas.
 typedef Point TVectorCoordenadas[DMaxArboles], *PtrVectorCoordenadas;
@@ -242,67 +248,28 @@ TListaArboles CalcularCercaOptima(int n_threads)
 	OrdenarArboles();
 
 	/* C�culo �timo */
-	//TListaArboles *Optimo;
 
 	pthread_t tid;
 	PtrListaArboles *Optimal;
-	int bound;
-	// for(int i = 0; i < n; i++){ /* Canviar 3 per nombre de threads!*/
-	
-		// bounds[0] = i*MaxCombinaciones/2;
-		// bounds[1] = (i+1)*MaxCombinaciones/2;
-		// pthread_create(&tids[i], NULL, CalcularCombinacionOptima, bounds);
-	// }
-	if( pthread_create(&tid, NULL,(void *) *CalcularCombinacionOptima, NULL ) != 0 ){
+
+	arg_struct args;
+	args.lower_bound = 1;
+	args.upper_bound = 100;
+
+	if( pthread_create(&tid, NULL,(void *) *CalcularCombinacionOptima, (void *) &args) != 0 ){
 		perror("Error creating the thread");
 	}
 
 	void *result;
 
-	if( pthread_join(tid, &result) == 0 ){
+	if( pthread_join(tid, &result) != 0 ){
 		perror("Error joining the thread");
 	}
 
 	TListaArboles* Optimo = result;
 
-	fprintf(stderr, "CHECKPOINT 1\n");
-	
 	return *Optimo;
 }
-
-
-// TListaArboles CalcularCercaOptima_AUX(int n_threads)
-// {
-// 	int MaxCombinaciones;
-
-// 	/* C�culo Máximo Combinaciones */
-// 	MaxCombinaciones = (int) pow(2.0,ArbolesEntrada.NumArboles);
-
-// 	// Ordenar Arboles por segun coordenadas crecientes de x,y
-// 	OrdenarArboles();
-
-// 	/* C�culo �timo */
-// 	TListaArboles Optimo;
-
-	
-// 	int n = 2;
-// 	int bound = MaxCombinaciones / n;
-// 	pthread_t tids[n];
-// 	/*asd*/
-// 	PtrListaArboles Optimal1, Optimal2;
-// 	int bounds[2];
-// 	// for(int i = 0; i < n; i++){ /* Canviar 3 per nombre de threads!*/
-	
-// 		// bounds[0] = i*MaxCombinaciones/2;
-// 		// bounds[1] = (i+1)*MaxCombinaciones/2;
-// 		// pthread_create(&tids[i], NULL, CalcularCombinacionOptima, bounds);
-// 	// }
-// 	pthread_join(tids[0], &Optimal1);
-// 	// pthread_join(tids[1], &Optimal2);
-
-// 	return Optimo;
-// }
-
 
 
 void OrdenarArboles()
@@ -344,23 +311,18 @@ void OrdenarArboles()
 }
 
 
-
 // Calcula la combinacin ptima entre el rango de combinaciones PrimeraCombinacion-UltimaCombinacion.
 
-void* CalcularCombinacionOptima(void *args)
+void* CalcularCombinacionOptima(void *args_in)
 {
-	
-	fprintf(stderr, "CHECKPOINT 2\n");
-	
-	
-	int PrimeraCombinacion = 1; /* HARDCODED */
-	int UltimaCombinacion = 2;	/* HARDCODED */
+	printf("Asd");
+	// arg_struct args = (arg_struct) &args;
+	arg_struct *args = (arg_struct *) args_in;
+
+	int PrimeraCombinacion = args->lower_bound; /* HARDCODED */
+	int UltimaCombinacion = args->upper_bound;	/* HARDCODED */
 
 	
-	
-	printf("Sóc un thread i la primera combinació és %d\n", PrimeraCombinacion);
-
-
 	TListaArboles *Optimo;
 	Optimo = (TListaArboles *) malloc(sizeof(TListaArboles));
 
