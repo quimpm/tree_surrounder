@@ -6,7 +6,6 @@
 
 #include <pthread.h>
 
-
 #define DMaxArboles 	25
 #define DMaximoCoste 999999
 #define S 10000
@@ -52,7 +51,6 @@ struct ListaArboles
 	int 		Arboles[DMaxArboles];
 };
 typedef struct ListaArboles TListaArboles, *PtrListaArboles;
-
 
 //Estructura pasada a los threads como argumento
 struct arg_struct 
@@ -104,6 +102,7 @@ int main(int argc, char *argv[])
 {
 	TListaArboles Optimo;
 	
+
 	if (argc<2 || argc>4)
 		printf("Error Argumentos. Usage: CalcArboles <Fichero_Entrada> [<Fichero_Salida>]");
 
@@ -113,7 +112,9 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	Optimo = CalcularCercaOptima(atoi(argv[3]));
+	//TODO: Fer parametre!!
+	//TODO Arreglar Distribució tasques threads
+	Optimo = CalcularCercaOptima(2);
 
 	/*if (!CalcularCercaOptima(&Optimo))
 	{
@@ -242,6 +243,7 @@ bool GenerarFicheroSalida(TListaArboles Optimo, char *PathFicOut)
 
 
 
+TListaArboles CalcularCercaOptima(int n_threads)
 {
 	int MaxCombinaciones;
 
@@ -254,26 +256,37 @@ bool GenerarFicheroSalida(TListaArboles Optimo, char *PathFicOut)
 	/* C�culo �timo */
 
 
-	pthread_t tid;
+	pthread_t tid[n_threads];
 	PtrListaArboles *Optimal;
+	int i;
+	arg_struct args[n_threads];
+	void *result[n_threads];
+	
+	for(i=0;i<n_threads;i++)
+	{
+		
+		args[i].lower_bound = i*MaxCombinaciones/2;
+		args[i].upper_bound = (i+1)*MaxCombinaciones/2;
 
-	arg_struct args;
-	args.lower_bound = 1;
-	args.upper_bound = 100;
+		if( pthread_create(&tid[i], NULL,(void *) *CalcularCombinacionOptima, (void *) &args[i]) != 0 ){
+			perror("Error creating the thread");
+		}
+		
+	}
+	
+	for(i=0;i<n_threads;i++)
+	{
+		
+		if( pthread_join(tid[i], &result[i]) != 0 ){
+				perror("Error joining the thread");
+			}
+		
 
-	if( pthread_create(&tid, NULL,(void *) *CalcularCombinacionOptima, (void *) &args) != 0 ){
-		perror("Error creating the thread");
 	}
 
-	void *result;
-
-	if( pthread_join(tid, &result) != 0 ){
-		perror("Error joining the thread");
-	}
-
-	TListaArboles* Optimo = result;
-
-	return *Optimo;
+	TListaArboles* arb_res = result[0];
+ 
+	return *arb_res;
 }
 
 
@@ -315,6 +328,7 @@ void OrdenarArboles()
 		}
 	}
 }
+
 
 
 // Calcula la combinacin ptima entre el rango de combinaciones PrimeraCombinacion-UltimaCombinacion.
@@ -388,7 +402,6 @@ void* CalcularCombinacionOptima(void *args_in)
 	NumArboles = ConvertirCombinacionToArboles(MejorCombinacion, &CombinacionArboles);
 	ObtenerListaCoordenadasArboles(CombinacionArboles, CoordArboles);
 	PuntosCerca = chainHull_2D( CoordArboles, NumArboles, CercaArboles );
-
 
 	Optimo->LongitudCerca = CalcularLongitudCerca(CercaArboles, PuntosCerca);
 	MaderaArbolesTalados = CalcularMaderaArbolesTalados(*Optimo);
