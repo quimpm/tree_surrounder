@@ -270,6 +270,8 @@ TListaArboles CalcularCercaOptima(int n_threads)
 	args[n_threads-1].lower_bound = ch_threads*chunk;	/*	Father thread does slightly less combinations  	*/
 	args[n_threads-1].upper_bound = MaxCombinaciones; 	/* 	to compensate for being the last called 		*/
 	result[n_threads-1] =  CalcularCombinacionOptima((void * ) &args[n_threads-1]);
+	
+	TListaArboles* optimal = result[n_threads-1]; 
 
 	/* For loop that joins all the thread results (with each optimal) */
 	for(i=0;i<ch_threads;i++)
@@ -277,18 +279,15 @@ TListaArboles CalcularCercaOptima(int n_threads)
 		if( pthread_join(tid[i], &result[i]) != 0 ){
 				perror("Error joining the thread");
 			}
+		TListaArboles* current = result[i];
+		if(current->Coste < optimal->Coste){
+			optimal = current;
+		}else if(current->Coste == optimal->Coste && current->Arboles > optimal->Arboles){
+			optimal = current;
+		}
 	}
-	/* Testing */
-		TListaArboles* arb_result0 = result[0];
-		arb_result0->
 
-
-	/* Testing */
-
-
-	TListaArboles* arb_res = result[0];
- 
-	return *arb_res;
+	return *optimal;
 }
 
 
@@ -336,7 +335,6 @@ void OrdenarArboles()
 
 void* CalcularCombinacionOptima(void *args_in)
 {
-	printf("Asd");
 	// arg_struct args = (arg_struct) &args;
 	arg_struct *args = (arg_struct *) args_in;
 
