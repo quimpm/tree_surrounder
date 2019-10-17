@@ -115,12 +115,6 @@ int main(int argc, char *argv[])
 	//TODO Arreglar Distribució tasques threads
 	Optimo = CalcularCercaOptima(atoi(argv[2]));
 
-	/*if (!CalcularCercaOptima(&Optimo))
-	{
-		printf("Error CalcularCercaOptima.\n");
-		exit(1);
-	}*/
-
 	if (argc==3)
 	{
 		if (!GenerarFicheroSalida(Optimo, "./Valla.res"))
@@ -253,41 +247,49 @@ TListaArboles CalcularCercaOptima(int n_threads)
 	OrdenarArboles();
 
 	/* C�culo �timo */
-
-
 	pthread_t tid[n_threads];
-	PtrListaArboles *Optimal;
 	int i;
 	arg_struct args[n_threads];
 	void *result[n_threads];
-	
-	for(i=0;i<n_threads;i++)
+	int ch_threads = n_threads - 1; /* Nombre de fils fills */
+	int chunk = MaxCombinaciones/n_threads +1; /* Tamany del problema que resoldrà individualment cada fil */
+
+	/* Thread creation loop */
+	for(i=0;i<ch_threads;i++)
 	{
-		
-		args[i].lower_bound = i*MaxCombinaciones/n_threads;
-		args[i].upper_bound = (i+1)*MaxCombinaciones/n_threads;
+		args[i].lower_bound = i*chunk;
+		args[i].upper_bound = (i+1)*chunk;
 
 		if( pthread_create(&tid[i], NULL,(void *) *CalcularCombinacionOptima, (void *) &args[i]) != 0 ){
 			perror("Error creating the thread");
 		}
 		
 	}
-	
-	for(i=0;i<n_threads;i++)
+
+	/* Computation assigned to the father thread */
+	args[n_threads-1].lower_bound = ch_threads*chunk;	/*	Father thread does slightly less combinations  	*/
+	args[n_threads-1].upper_bound = MaxCombinaciones; 	/* 	to compensate for being the last called 		*/
+	result[n_threads-1] =  CalcularCombinacionOptima((void * ) &args[n_threads-1]);
+
+	/* For loop that joins all the thread results (with each optimal) */
+	for(i=0;i<ch_threads;i++)
 	{
-		
 		if( pthread_join(tid[i], &result[i]) != 0 ){
 				perror("Error joining the thread");
 			}
-		
-
 	}
+	/* Testing */
+		TListaArboles* arb_result0 = result[0];
+		arb_result0->
+
+
+	/* Testing */
+
 
 	TListaArboles* arb_res = result[0];
  
 	return *arb_res;
 }
-
 
 
 void OrdenarArboles()
@@ -338,8 +340,8 @@ void* CalcularCombinacionOptima(void *args_in)
 	// arg_struct args = (arg_struct) &args;
 	arg_struct *args = (arg_struct *) args_in;
 
-	int PrimeraCombinacion = args->lower_bound; /* HARDCODED */
-	int UltimaCombinacion = args->upper_bound;	/* HARDCODED */
+	int PrimeraCombinacion = args->lower_bound; 
+	int UltimaCombinacion = args->upper_bound;
 
 	
 	TListaArboles *Optimo;
