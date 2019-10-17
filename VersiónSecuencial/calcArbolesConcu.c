@@ -11,6 +11,9 @@
 #define S 10000
 #define DDebug 0
 
+	/* -- TODOS -- */
+	/* Arreglar arguments per que quedi com diu a l'enunciat	*/
+
 
   //////////////////////////
  // Estructuras de datos //
@@ -282,7 +285,7 @@ TListaArboles CalcularCercaOptima(int n_threads)
 		TListaArboles* current = result[i];
 		if(current->Coste < optimal->Coste){
 			optimal = current;
-		}else if(current->Coste == optimal->Coste && current->Arboles > optimal->Arboles){
+		}else if(current->Coste == optimal->Coste && current->Arboles < optimal->Arboles){
 			optimal = current;
 		}
 	}
@@ -351,6 +354,9 @@ void* CalcularCombinacionOptima(void *args_in)
 	int Combinacion, MejorCombinacion=0, CosteMejorCombinacion;
 	int Coste;
 	TListaArboles OptimoParcial;
+	TListaArboles optimo_aux1;
+	TListaArboles optimo_aux2;
+
 
 	TListaArboles CombinacionArboles;
 	TVectorCoordenadas CoordArboles, CercaArboles;
@@ -371,7 +377,15 @@ void* CalcularCombinacionOptima(void *args_in)
 			CosteMejorCombinacion = Coste;
 			MejorCombinacion = Combinacion;
 //      	printf("***");
+		}else if(Coste == CosteMejorCombinacion){
+			ConvertirCombinacionToArbolesTalados(Combinacion, &optimo_aux1);
+			ConvertirCombinacionToArbolesTalados(MejorCombinacion, &optimo_aux2);
+			if(optimo_aux1.Arboles < optimo_aux2.Arboles){
+				MejorCombinacion = Combinacion;
+			}
 		}
+
+
 		if ((Combinacion%S)==0)
 		{
 			 ConvertirCombinacionToArbolesTalados(MejorCombinacion, &OptimoParcial);
