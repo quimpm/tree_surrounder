@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 	TListaArboles Optimo;
 	
 
-	if (argc<2 || argc>4)
+	if (argc<2 || argc>5)
 		printf("Error Argumentos. Usage: CalcArboles <Fichero_Entrada> [<Fichero_Salida>]");
 
 	if (!LeerFicheroEntrada(argv[1]))
@@ -112,9 +112,8 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	//TODO: Fer parametre!!
 	//TODO Arreglar Distribució tasques threads
-	Optimo = CalcularCercaOptima(2);
+	Optimo = CalcularCercaOptima(atoi(argv[2]));
 
 	/*if (!CalcularCercaOptima(&Optimo))
 	{
@@ -122,7 +121,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}*/
 
-	if (argc==2)
+	if (argc==3)
 	{
 		if (!GenerarFicheroSalida(Optimo, "./Valla.res"))
 		{
@@ -132,7 +131,7 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		if (!GenerarFicheroSalida(Optimo, argv[2]))
+		if (!GenerarFicheroSalida(Optimo, argv[3]))
 		{
 			printf("Error GenerarFicheroSalida.\n");
 			exit(1);
@@ -265,8 +264,8 @@ TListaArboles CalcularCercaOptima(int n_threads)
 	for(i=0;i<n_threads;i++)
 	{
 		
-		args[i].lower_bound = i*MaxCombinaciones/2;
-		args[i].upper_bound = (i+1)*MaxCombinaciones/2;
+		args[i].lower_bound = i*MaxCombinaciones/n_threads;
+		args[i].upper_bound = (i+1)*MaxCombinaciones/n_threads;
 
 		if( pthread_create(&tid[i], NULL,(void *) *CalcularCombinacionOptima, (void *) &args[i]) != 0 ){
 			perror("Error creating the thread");
