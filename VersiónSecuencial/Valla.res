@@ -1,4 +1,4 @@
-Cortar 4 árbol/es: 19 10 4 6 
-Madera Sobrante: 	2.68 (42.32)
-Valor árboles cortados: 	22.00.
-Valor árboles restantes: 	228.00
+Cortar 1 árbol/es: 7 
+Madera Sobrante: 	7867.11 (28.89)
+Valor árboles cortados: 	1642.00.
+Valor árboles restantes: 	59137.00

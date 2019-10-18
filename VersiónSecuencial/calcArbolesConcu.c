@@ -12,8 +12,9 @@
 #define DDebug 0
 
 	/* -- TODOS -- */
-	/* Arreglar arguments per que quedi com diu a l'enunciat	*/
-
+	/* Control d'errors arguments, mirar per el cas de 2 amb fitxer de sortida i sense n_threads */
+	/* Cancelacion hilos quan falla fil? */
+	/* Liberar memoria */
 
   //////////////////////////
  // Estructuras de datos //
