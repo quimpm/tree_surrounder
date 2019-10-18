@@ -14,7 +14,7 @@ def main(num_exemples):
     files=[]
     i=0
     while i<num_exemples:
-        files.append(open("./exemples/exemple"+str(i)+".dat","w+"))
+        files.append(open("./tests/test"+str(i)+".dat","w+"))
         n_trees=randomTreeNum()
         files[i].write(str(n_trees)+"\n")
         j=0

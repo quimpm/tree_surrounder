@@ -1,58 +1,61 @@
 test_14.dat:
-real	0m0,018s
-user	0m0,018s
-sys	0m0,001s
+real	0m0,036s
+user	0m0,036s
+sys	0m0,000s
 
 test_15.dat:
-real	0m0,032s
-user	0m0,028s
+real	0m0,058s
+user	0m0,054s
 sys	0m0,004s
 
 test_16.dat:
-real	0m0,083s
-user	0m0,079s
+real	0m0,070s
+user	0m0,066s
 sys	0m0,004s
 
 test_17.dat:
-real	0m0,119s
-user	0m0,115s
+real	0m0,134s
+user	0m0,129s
 sys	0m0,004s
 
 test_18.dat:
-real	0m0,250s
-user	0m0,246s
+real	0m0,241s
+user	0m0,237s
 sys	0m0,004s
 
 test_19.dat:
-real	0m0,510s
-user	0m0,504s
-sys	0m0,004s
+real	0m0,540s
+user	0m0,538s
+sys	0m0,000s
 
 test_20.dat:
-real	0m1,034s
-user	0m1,031s
-sys	0m0,001s
+real	0m1,052s
+user	0m1,050s
+sys	0m0,000s
 
 test_21.dat:
-real	0m2,149s
-user	0m2,146s
+real	0m2,042s
+user	0m2,039s
 sys	0m0,000s
 
 test_22.dat:
-real	0m4,409s
-user	0m4,388s
-sys	0m0,003s
+real	0m4,485s
+user	0m4,474s
+sys	0m0,004s
 
 test_23.dat:
-real	0m8,478s
-user	0m8,440s
-sys	0m0,013s
+real	0m9,033s
+user	0m8,936s
+sys	0m0,014s
+
 test_24.dat:
-real	0m18,174s
-user	0m18,162s
-sys	0m0,000s
+real	0m18,668s
+user	0m18,633s
+sys	0m0,004s
 
 test_25.dat:
-real	0m36,041s
-user	0m35,953s
-sys	0m0,036s
+real	0m37,041s
+user	0m36,945s
+sys	0m0,021s
+
+

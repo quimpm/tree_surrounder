@@ -1,24 +1,61 @@
 test_14.dat:
+real	0m0,029s
+user	0m0,058s
+sys	0m0,004s
 
 test_15.dat:
+real	0m0,026s
+user	0m0,058s
+sys	0m0,003s
 
 test_16.dat:
+real	0m0,047s
+user	0m0,121s
+sys	0m0,000s
 
 test_17.dat:
+real	0m0,089s
+user	0m0,227s
+sys	0m0,004s
 
 test_18.dat:
+real	0m0,137s
+user	0m0,349s
+sys	0m0,000s
 
 test_19.dat:
+real	0m0,270s
+user	0m0,684s
+sys	0m0,011s
 
 test_20.dat:
+real	0m0,523s
+user	0m1,361s
+sys	0m0,000s
 
 test_21.dat:
+real	0m0,944s
+user	0m2,619s
+sys	0m0,004s
 
 test_22.dat:
+real	0m2,168s
+user	0m5,743s
+sys	0m0,007s
 
 test_23.dat:
+real	0m4,073s
+user	0m11,181s
+sys	0m0,014s
 
 test_24.dat:
+real	0m8,652s
+user	0m22,999s
+sys	0m0,007s
 
 test_25.dat:
+real	0m17,253s
+user	0m46,489s
+sys	0m0,037s
+
 
