@@ -11,10 +11,7 @@
 #define S 10000
 #define DDebug 0
 
-	/* -- TODOS -- */
-	/* Control d'errors arguments, mirar per el cas de 2 amb fitxer de sortida i sense n_threads */
-	/* Cancelacion hilos quan falla fil? */
-	/* Liberar memoria */
+
 
   //////////////////////////
  // Estructuras de datos //
@@ -98,6 +95,7 @@ float CalcularDistancia(int x1, int y1, int x2, int y2);
 int CalcularMaderaArbolesTalados(TListaArboles CombinacionArboles);
 int CalcularCosteCombinacion(TListaArboles CombinacionArboles);
 void MostrarArboles(TListaArboles CombinacionArboles);
+TListaArboles copiarTListaArboles(TListaArboles*  listaArboles_1);
 
 
 
@@ -105,18 +103,17 @@ void MostrarArboles(TListaArboles CombinacionArboles);
 int main(int argc, char *argv[])
 {
 	TListaArboles Optimo;
-	
 
-	if (argc<2 || argc>5)
-		printf("Error Argumentos. Usage: CalcArboles <Fichero_Entrada> [<Fichero_Salida>]");
+	if (argc<3 || argc>5)
+		printf("Error Argumentos. Usage: CalcArboles <Fichero_Entrada> <Numero_Threads>[<Fichero_Salida>]\n");
+		exit(1);
 
 	if (!LeerFicheroEntrada(argv[1]))
 	{
 		printf("Error lectura fichero entrada.\n");
 		exit(1);
 	}
-
-	//TODO Arreglar Distribució tasques threads
+	
 	Optimo = CalcularCercaOptima(atoi(argv[2]));
 
 	if (argc==3)
@@ -243,44 +240,42 @@ bool GenerarFicheroSalida(TListaArboles Optimo, char *PathFicOut)
 TListaArboles CalcularCercaOptima(int n_threads)
 {
 	int MaxCombinaciones;
+	pthread_t tid[n_threads];
+	arg_struct args[n_threads]; /* Estructura que servirá para pasar los argumentos a los hilos */
+	void *result[n_threads]; /* Estructura donde se almacenarán los resultados de los hilos */
+	int i;
 
-	/* C�culo Máximo Combinaciones */
+	/* Cálculo Máximo Combinaciones */
 	MaxCombinaciones = (int) pow(2.0,ArbolesEntrada.NumArboles);
 
 	// Ordenar Arboles por segun coordenadas crecientes de x,y
 	OrdenarArboles();
 
-	/* C�culo �timo */
-	pthread_t tid[n_threads];
-	int i;
-	arg_struct args[n_threads];
-	void *result[n_threads];
-	int ch_threads = n_threads - 1; /* Nombre de fils fills */
-	int chunk = MaxCombinaciones/n_threads +1; /* Tamany del problema que resoldrà individualment cada fil */
+	/* Cálculo óptimo */
+	int ch_threads = n_threads - 1; /* Nombre de hilos hijo (uno menos que el total) */
+	int chunk = MaxCombinaciones/n_threads +1; /* Tamaño del problema que resolverá individualmente cada hilo */
 
-	/* Thread creation loop */
+	/* Bucle de creación de hilos */
 	for(i=0;i<ch_threads;i++)
 	{
 		args[i].lower_bound = i*chunk;
-		args[i].upper_bound = (i+1)*chunk;
-
+		args[i].upper_bound = (i+1)*chunk-1;
 		if( pthread_create(&tid[i], NULL,(void *) *CalcularCombinacionOptima, (void *) &args[i]) != 0 ){
 			perror("Error creating the thread");
 		}
-		
 	}
 
-	/* Computation assigned to the father thread */
-	args[n_threads-1].lower_bound = ch_threads*chunk;	/*	Father thread does slightly less combinations  	*/
-	args[n_threads-1].upper_bound = MaxCombinaciones; 	/* 	to compensate for being the last called 		*/
+	/* Cálculo asignado al hilo padre (este también contribuye) */
+	args[n_threads-1].lower_bound = ch_threads*chunk;	/*	El padre hace ligeramente menos combinaciones  	*/
+	args[n_threads-1].upper_bound = MaxCombinaciones; 	/* 	para compensar que es el último llamado 		*/
 	result[n_threads-1] =  CalcularCombinacionOptima((void * ) &args[n_threads-1]);
 	
 	TListaArboles* optimal = result[n_threads-1]; 
 
-	/* For loop that joins all the thread results (with each optimal) */
+	/* Bucle que hace el join de todos los hilos hijo y almacena el resultado del optimo */
 	for(i=0;i<ch_threads;i++)
 	{
-		if( pthread_join(tid[i], &result[i]) != 0 ){
+		if(pthread_join(tid[i], &result[i]) != 0 ){
 				perror("Error joining the thread");
 			}
 		TListaArboles* current = result[i];
@@ -291,9 +286,30 @@ TListaArboles CalcularCercaOptima(int n_threads)
 		}
 	}
 
-	return *optimal;
+	/* Guarda el optimo en alcance local para poder liberar la memoria reservada con malloc */
+	TListaArboles local_optimal = copiarTListaArboles(optimal);
+	
+	/* Liberar espacio reservado por cada parámetro de retorno (reservado en CalcularCombinacionOptima) */
+	for(i=0; i < n_threads; i++){
+		free(result[i]);
+	}
+
+	return local_optimal;
 }
 
+TListaArboles copiarTListaArboles(TListaArboles*  listaArboles_1){
+	TListaArboles listaArboles_2;
+	for(int i = 0; i < sizeof(listaArboles_1->Arboles)/sizeof(listaArboles_1->Arboles[0]);i++){
+		listaArboles_2.Arboles[i] = listaArboles_1->Arboles[i];
+	}
+	listaArboles_2.Coste = listaArboles_1->Coste;
+	listaArboles_2.CosteArbolesCortados = listaArboles_1->CosteArbolesCortados;
+	listaArboles_2.CosteArbolesRestantes = listaArboles_1->CosteArbolesRestantes;
+	listaArboles_2.LongitudCerca = listaArboles_1->LongitudCerca;
+	listaArboles_2.MaderaSobrante = listaArboles_1->MaderaSobrante;
+	listaArboles_2.NumArboles = listaArboles_1->NumArboles;
+	return listaArboles_2;
+}
 
 void OrdenarArboles()
 {
@@ -339,7 +355,6 @@ void OrdenarArboles()
 
 void* CalcularCombinacionOptima(void *args_in)
 {
-	// arg_struct args = (arg_struct) &args;
 	arg_struct *args = (arg_struct *) args_in;
 
 	int PrimeraCombinacion = args->lower_bound; 
@@ -422,9 +437,6 @@ void* CalcularCombinacionOptima(void *args_in)
 	Optimo->MaderaSobrante = MaderaArbolesTalados - Optimo->LongitudCerca;
 	Optimo->CosteArbolesCortados = CosteMejorCombinacion;
 	Optimo->CosteArbolesRestantes = CalcularCosteCombinacion(CombinacionArboles);
-
-	
-	
 
 	return (void *) Optimo;
 
