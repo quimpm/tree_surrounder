@@ -83,6 +83,24 @@ De mismo modo se ejecutará varias veces el programa con distinto número de hil
 \end{figure}
 \newpage
 %escriure a partir d'aquí
+El objetivo de la práctica es que la versión concurrente sea más rápida 
+que la versión secuencial. Aunque esto se pueda discernir claramente al 
+mirar la gráfica, cabe destacar algunas peculiaridades sobre los resultados
+obtenidos.\\
+
+Como podemos ver, tanto la versión secuencial como la concurrente 
+crece de forma exponencial en función del número de árboles que tiene el problema.
+Aunque con la versión concurrente consigamos un menor tiempo, esta también 
+tenderá a crecer exponencialmente, puesto que el número de combinaciones
+en función de n árboles crece también de forma exponencial (2^n).\\
+
+También se puede ver como la diferencia de tiempo es mayor cuanto mayor es
+el número de árboles. Esto es debido a que, cuanto más árboles hay, mayor es
+el cómputo que se hace de forma concurrente y por tanto, mayor el impacto en
+la diferencia de tiempo. De la misma forma, cuanto menos árboles hay, mayor es 
+la proporción de código que se ejecuta de forma secuencial, como por ejemplo,
+la creación de hilos o el tratamiento de argumentos, y sale menos a cuenta 
+que se ejecute concurrentemente.
 
 \section{Diferencias entre multiples hilos}
 \begin{figure}[hbt!]
