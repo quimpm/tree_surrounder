@@ -261,12 +261,10 @@ TListaArboles CalcularCercaOptima(int n_threads)
 	for(i=0;i<ch_threads;i++)
 	{
 		args[i].lower_bound = i*chunk;
-		args[i].upper_bound = (i+1)*chunk;
-
+		args[i].upper_bound = (i+1)*chunk-1;
 		if( pthread_create(&tid[i], NULL,(void *) *CalcularCombinacionOptima, (void *) &args[i]) != 0 ){
 			perror("Error creating the thread");
 		}
-		
 	}
 
 	/* Computation assigned to the father thread */
@@ -290,7 +288,26 @@ TListaArboles CalcularCercaOptima(int n_threads)
 		}
 	}
 
-	return *optimal;
+	TListaArboles local_optimal;
+	local_optimal.Arboles[sizeof(optimal->Arboles)/sizeof(optimal->Arboles[0])];
+
+	for(i = 0; i < sizeof(optimal->Arboles)/sizeof(optimal->Arboles[0]); i++){
+		local_optimal.Arboles[i] = optimal->Arboles[i];
+	}
+	local_optimal.Coste = optimal->Coste;
+	local_optimal.CosteArbolesCortados = optimal->CosteArbolesCortados;
+	local_optimal.CosteArbolesRestantes = optimal->CosteArbolesRestantes;
+	local_optimal.LongitudCerca = optimal->LongitudCerca;
+	local_optimal.MaderaSobrante = optimal->MaderaSobrante;
+	local_optimal.NumArboles = optimal->NumArboles;
+
+
+	/* Liberar espacio reservado por cada parámetro de retorno (reservado en CalcularCombinacionOptima) */
+	for(i=0; i < n_threads; i++){
+		free(result[i]);
+	}
+
+	return local_optimal;
 }
 
 
