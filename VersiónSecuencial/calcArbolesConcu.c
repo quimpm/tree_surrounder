@@ -289,7 +289,6 @@ TListaArboles CalcularCercaOptima(int n_threads)
 	}
 
 	TListaArboles local_optimal;
-	local_optimal.Arboles[sizeof(optimal->Arboles)/sizeof(optimal->Arboles[0])];
 
 	for(i = 0; i < sizeof(optimal->Arboles)/sizeof(optimal->Arboles[0]); i++){
 		local_optimal.Arboles[i] = optimal->Arboles[i];
