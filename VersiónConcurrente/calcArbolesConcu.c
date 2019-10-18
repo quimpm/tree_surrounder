@@ -354,7 +354,7 @@ void OrdenarArboles()
 
 
 
-// Calcula la combinacin ptima entre el rango de combinaciones PrimeraCombinacion-UltimaCombinacion.
+// Calcula la combinacin optima entre el rango de combinaciones PrimeraCombinacion-UltimaCombinacion.
 
 void* CalcularCombinacionOptima(void *args_in)
 {
