@@ -1,13 +1,25 @@
+/* ---------------------------------------------------------------
+Práctica 1.
+Código fuente: CalcArbolesConcurrent.c
+Grau Informàtica
+49383707Q i Joaquim Picó Mora.
+47984615Z i Ian Palacín Aliana.
+---------------------------------------------------------------*/
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 
 #include <ConvexHull.h>
 
+#include <pthread.h>
+
 #define DMaxArboles 	25
 #define DMaximoCoste 999999
 #define S 10000
 #define DDebug 0
+
 
 
   //////////////////////////
@@ -50,6 +62,13 @@ struct ListaArboles
 };
 typedef struct ListaArboles TListaArboles, *PtrListaArboles;
 
+//Estructura pasada a los threads como argumento
+struct arg_struct 
+{
+	int			lower_bound;
+	int			upper_bound;
+};
+typedef struct arg_struct arg_struct;
 
 
 // Vector est�ico Coordenadas.
@@ -73,9 +92,9 @@ TBosque ArbolesEntrada;
 
 bool LeerFicheroEntrada(char *PathFicIn);
 bool GenerarFicheroSalida(TListaArboles optimo, char *PathFicOut);
-bool CalcularCercaOptima(PtrListaArboles Optimo);
+TListaArboles CalcularCercaOptima(int n_threads);
 void OrdenarArboles();
-bool CalcularCombinacionOptima(int PrimeraCombinacion, int UltimaCombinacion, PtrListaArboles Optimo);
+void* CalcularCombinacionOptima(void *args);
 int EvaluarCombinacionListaArboles(int Combinacion);
 int ConvertirCombinacionToArboles(int Combinacion, PtrListaArboles CombinacionArboles);
 int ConvertirCombinacionToArbolesTalados(int Combinacion, PtrListaArboles CombinacionArbolesTalados);
@@ -85,30 +104,30 @@ float CalcularDistancia(int x1, int y1, int x2, int y2);
 int CalcularMaderaArbolesTalados(TListaArboles CombinacionArboles);
 int CalcularCosteCombinacion(TListaArboles CombinacionArboles);
 void MostrarArboles(TListaArboles CombinacionArboles);
+TListaArboles copiarTListaArboles(TListaArboles*  listaArboles_1);
 
 
 
 
 int main(int argc, char *argv[])
 {
-	TListaArboles Optimo;
 	
-	if (argc<2 || argc>3)
-		printf("Error Argumentos. Usage: CalcArboles <Fichero_Entrada> [<Fichero_Salida>]");
+	TListaArboles Optimo;
 
+	if (argc<3 || argc>5)
+	{
+		printf("Error Argumentos. Usage: CalcArboles <Fichero_Entrada> <Numero_Threads>[<Fichero_Salida>]\n");
+		exit(1);
+	}
 	if (!LeerFicheroEntrada(argv[1]))
 	{
 		printf("Error lectura fichero entrada.\n");
 		exit(1);
 	}
+	
+	Optimo = CalcularCercaOptima(atoi(argv[2]));
 
-	if (!CalcularCercaOptima(&Optimo))
-	{
-		printf("Error CalcularCercaOptima.\n");
-		exit(1);
-	}
-
-	if (argc==2)
+	if (argc==3)
 	{
 		if (!GenerarFicheroSalida(Optimo, "./Valla.res"))
 		{
@@ -118,7 +137,7 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		if (!GenerarFicheroSalida(Optimo, argv[2]))
+		if (!GenerarFicheroSalida(Optimo, argv[3]))
 		{
 			printf("Error GenerarFicheroSalida.\n");
 			exit(1);
@@ -133,6 +152,7 @@ bool LeerFicheroEntrada(char *PathFicIn)
 {
 	FILE *FicIn;
 	int a;
+	
 
 	FicIn=fopen(PathFicIn,"r");
 	if (FicIn==NULL)
@@ -228,25 +248,80 @@ bool GenerarFicheroSalida(TListaArboles Optimo, char *PathFicOut)
 
 
 
-bool CalcularCercaOptima(PtrListaArboles Optimo)
+
+TListaArboles CalcularCercaOptima(int n_threads)
 {
 	int MaxCombinaciones;
+	pthread_t tid[n_threads];
+	arg_struct args[n_threads]; /* Estructura que servirá para pasar los argumentos a los hilos */
+	void *result[n_threads]; /* Estructura donde se almacenarán los resultados de los hilos */
+	int i;
 
-	/* C�culo Máximo Combinaciones */
+	/* Cálculo Máximo Combinaciones */
 	MaxCombinaciones = (int) pow(2.0,ArbolesEntrada.NumArboles);
 
 	// Ordenar Arboles por segun coordenadas crecientes de x,y
 	OrdenarArboles();
 
-	/* C�culo �timo */
-	Optimo->NumArboles = 0;
-	Optimo->Coste = DMaximoCoste;
-	CalcularCombinacionOptima(1, MaxCombinaciones, Optimo);
+	/* Cálculo óptimo */
+	int ch_threads = n_threads - 1; /* Nombre de hilos hijo (uno menos que el total) */
+	int chunk = MaxCombinaciones/n_threads +1; /* Tamaño del problema que resolverá individualmente cada hilo */
 
-	return true;
+	/* Bucle de creación de hilos */
+	for(i=0;i<ch_threads;i++)
+	{
+		args[i].lower_bound = i*chunk;
+		args[i].upper_bound = (i+1)*chunk-1;
+		if( pthread_create(&tid[i], NULL,(void *) *CalcularCombinacionOptima, (void *) &args[i]) != 0 ){
+			perror("Error creating the thread");
+		}
+	}
+
+	/* Cálculo asignado al hilo padre (este también contribuye) */
+	args[n_threads-1].lower_bound = ch_threads*chunk;	/*	El padre hace ligeramente menos combinaciones  	*/
+	args[n_threads-1].upper_bound = MaxCombinaciones; 	/* 	para compensar que es el último llamado 		*/
+	result[n_threads-1] =  CalcularCombinacionOptima((void * ) &args[n_threads-1]);
+	
+	TListaArboles* optimal = result[n_threads-1]; 
+
+	/* Bucle que hace el join de todos los hilos hijo y almacena el resultado del optimo */
+	for(i=0;i<ch_threads;i++)
+	{
+		if(pthread_join(tid[i], &result[i]) != 0 ){
+				perror("Error joining the thread");
+			}
+		TListaArboles* current = result[i];
+		if(current->Coste < optimal->Coste){
+			optimal = current;
+		}else if(current->Coste == optimal->Coste && current->Arboles < optimal->Arboles){
+			optimal = current;
+		}
+	}
+
+	/* Guarda el optimo en alcance local para poder liberar la memoria reservada con malloc */
+	TListaArboles local_optimal = copiarTListaArboles(optimal);
+	
+	/* Liberar espacio reservado por cada parámetro de retorno (reservado en CalcularCombinacionOptima) */
+	for(i=0; i < n_threads; i++){
+		free(result[i]);
+	}
+
+	return local_optimal;
 }
 
-
+TListaArboles copiarTListaArboles(TListaArboles*  listaArboles_1){
+	TListaArboles listaArboles_2;
+	for(int i = 0; i < sizeof(listaArboles_1->Arboles)/sizeof(listaArboles_1->Arboles[0]);i++){
+		listaArboles_2.Arboles[i] = listaArboles_1->Arboles[i];
+	}
+	listaArboles_2.Coste = listaArboles_1->Coste;
+	listaArboles_2.CosteArbolesCortados = listaArboles_1->CosteArbolesCortados;
+	listaArboles_2.CosteArbolesRestantes = listaArboles_1->CosteArbolesRestantes;
+	listaArboles_2.LongitudCerca = listaArboles_1->LongitudCerca;
+	listaArboles_2.MaderaSobrante = listaArboles_1->MaderaSobrante;
+	listaArboles_2.NumArboles = listaArboles_1->NumArboles;
+	return listaArboles_2;
+}
 
 void OrdenarArboles()
 {
@@ -288,13 +363,28 @@ void OrdenarArboles()
 
 
 
-// Calcula la combinacin ptima entre el rango de combinaciones PrimeraCombinacion-UltimaCombinacion.
+// Calcula la combinacin optima entre el rango de combinaciones PrimeraCombinacion-UltimaCombinacion.
 
-bool CalcularCombinacionOptima(int PrimeraCombinacion, int UltimaCombinacion, PtrListaArboles Optimo)
+void* CalcularCombinacionOptima(void *args_in)
 {
+	arg_struct *args = (arg_struct *) args_in;
+
+	int PrimeraCombinacion = args->lower_bound; 
+	int UltimaCombinacion = args->upper_bound;
+
+	
+	TListaArboles *Optimo;
+	Optimo = (TListaArboles *) malloc(sizeof(TListaArboles));
+
+	Optimo->NumArboles = 0;
+	Optimo->Coste = DMaximoCoste;
+
 	int Combinacion, MejorCombinacion=0, CosteMejorCombinacion;
 	int Coste;
 	TListaArboles OptimoParcial;
+	TListaArboles optimo_aux1;
+	TListaArboles optimo_aux2;
+
 
 	TListaArboles CombinacionArboles;
 	TVectorCoordenadas CoordArboles, CercaArboles;
@@ -302,17 +392,28 @@ bool CalcularCombinacionOptima(int PrimeraCombinacion, int UltimaCombinacion, Pt
 	float MaderaArbolesTalados;
 
   	printf("Evaluacin Combinaciones posibles: \n");
+
 	CosteMejorCombinacion = Optimo->Coste;
+
 	for (Combinacion=PrimeraCombinacion; Combinacion<UltimaCombinacion; Combinacion++)
 	{
 //    	printf("\tC%d -> \t",Combinacion);
+
 		Coste = EvaluarCombinacionListaArboles(Combinacion);
 		if ( Coste < CosteMejorCombinacion )
 		{
 			CosteMejorCombinacion = Coste;
 			MejorCombinacion = Combinacion;
 //      	printf("***");
+		}else if(Coste == CosteMejorCombinacion){
+			ConvertirCombinacionToArbolesTalados(Combinacion, &optimo_aux1);
+			ConvertirCombinacionToArbolesTalados(MejorCombinacion, &optimo_aux2);
+			if(optimo_aux1.Arboles < optimo_aux2.Arboles){
+				MejorCombinacion = Combinacion;
+			}
 		}
+
+
 		if ((Combinacion%S)==0)
 		{
 			 ConvertirCombinacionToArbolesTalados(MejorCombinacion, &OptimoParcial);
@@ -330,12 +431,14 @@ bool CalcularCombinacionOptima(int PrimeraCombinacion, int UltimaCombinacion, Pt
 	MostrarArboles(OptimoParcial);
 	printf("\n");
 
-	if (CosteMejorCombinacion == Optimo->Coste)
-		return false;  // No se ha encontrado una combinacin mejor.
+	/*if (CosteMejorCombinacion == Optimo.Coste) //HEM CANVIAT AIXO
+		return false;*/  // No se ha encontrado una combinacin mejor.
 
 	// Asignar combinacin encontrada.
+
 	ConvertirCombinacionToArbolesTalados(MejorCombinacion, Optimo);
 	Optimo->Coste = CosteMejorCombinacion;
+
 	// Calcular estadisticas óptimo.
 	NumArboles = ConvertirCombinacionToArboles(MejorCombinacion, &CombinacionArboles);
 	ObtenerListaCoordenadasArboles(CombinacionArboles, CoordArboles);
@@ -347,7 +450,8 @@ bool CalcularCombinacionOptima(int PrimeraCombinacion, int UltimaCombinacion, Pt
 	Optimo->CosteArbolesCortados = CosteMejorCombinacion;
 	Optimo->CosteArbolesRestantes = CalcularCosteCombinacion(CombinacionArboles);
 
-	return true;
+	return (void *) Optimo;
+
 }
 
 
