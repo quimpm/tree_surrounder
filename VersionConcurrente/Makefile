@@ -1,13 +1,13 @@
 
 CFLAGS= -I. -lm -pthread
 
+comp: CalcArbolesConcurrent.c
+	gcc CalcArbolesConcurrent.c -o CalcArbolesConcurrent $(CFLAGS)
 
 ex: CalcArbolesConcurrent.c
 	gcc CalcArbolesConcurrent.c -o CalcArbolesConcurrent $(CFLAGS)
 	./CalcArbolesConcurrent ConjuntoPruebas/$(f) $(t)   
  
-conc: CalcArbolesConcurrent.c
-	gcc CalcArbolesConcurrent.c -o CalcArbolesConcurrent $(CFLAGS)
 
 d: CalcArbolesConcurrent.c
 	gcc CalcArbolesConcurrent.c -o CalcArbolesConcurrent $(CFLAGS)
