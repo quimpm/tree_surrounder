@@ -92,7 +92,7 @@ Como podemos ver, tanto la versión secuencial como la concurrente
 crece de forma exponencial en función del número de árboles que tiene el problema.
 Aunque con la versión concurrente consigamos un menor tiempo, esta también 
 tenderá a crecer exponencialmente, puesto que el número de combinaciones
-en función de n árboles crece también de forma exponencial (2^n).\\
+en función de n árboles crece también de forma exponencial (2 elevado a n).\\
 
 También se puede ver como la diferencia de tiempo es mayor cuanto mayor es
 el número de árboles. Esto es debido a que, cuanto más árboles hay, mayor es
@@ -109,9 +109,12 @@ que se ejecute concurrentemente.
   \label{fig:multhilos}
 \end{figure}
 
-Como se puede ver en la Figura \ref{fig:multhilos}, conforme mas hilos ejecutando-se de forma paral·lela más eficiente és la ejecución del programa en terminos de tiempo.
+Como se puede ver en la Figura \ref{fig:multhilos}, conforme mas hilos ejecutándose de forma paralela más eficiente es la ejecución del programa en términos de tiempo.
 \\\\
-Se puede observar también, que a medida que va augmentado el número de threads la mejora de eficiencia és menor. En la gràfica se puede ver que el canvio de ejecutar la aplicación de forma sequencial a paral·lela con dos hilos, mejora casi al doble la eficiencia. Mientras que al canviar de una ejecución paralela de dos hilos a una de tres, no supone un canvio tan drastico.\\
+Se puede observar también, que a medida que va aumentado el número de threads la mejora de eficiencia es menor. En la gráfica se puede ver que el canvio de ejecutar la aplicación de forma secuencial a paralela con dos hilos, mejora casi al doble la eficiencia. Mientras que al cambiar de una ejecución paralela de dos hilos a una de tres, no supone un canvio tan drástico.\\
+
+\section{Diseño de la Solución}
+
 
 \end{document}
 
