@@ -17,6 +17,7 @@ test_17.dat:
 real	0m0,119s
 user	0m0,115s
 sys	0m0,004s
+
 test_18.dat:
 real	0m0,250s
 user	0m0,246s
@@ -31,6 +32,7 @@ test_20.dat:
 real	0m1,034s
 user	0m1,031s
 sys	0m0,001s
+
 test_21.dat:
 real	0m2,149s
 user	0m2,146s
