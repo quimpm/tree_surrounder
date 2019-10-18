@@ -114,7 +114,28 @@ Como se puede ver en la Figura \ref{fig:multhilos}, conforme mas hilos ejecután
 Se puede observar también, que a medida que va aumentado el número de threads la mejora de eficiencia es menor. En la gráfica se puede ver que el canvio de ejecutar la aplicación de forma secuencial a paralela con dos hilos, mejora casi al doble la eficiencia. Mientras que al cambiar de una ejecución paralela de dos hilos a una de tres, no supone un canvio tan drástico.\\
 
 \section{Diseño de la Solución}
+La solución presentada en estra práctica consiste en lo siguiente.
+El número de hilos que se desea ejecutar se obtiene por parámetro del
+programa. Para resolver el cómputo se crearán n-1 hilos, puesto que
+el hilo padre también tendrá su parte de cómputo.
+Para pasar al hilo por parámetro las combinaciones que le tocan, se ha 
+creado una estructura (argstruct) que almacena el límite inferior y 
+superior de combinaciones. Estos límites se han hecho de forma homogénea
+con el objetivo de que todos los hilos acaben de la forma más sincronizada
+posible para aumentar la concurrencia. A cada hilo le toca un cómputo de 
+Maxcombinaciones/númerodehilos y en caso de no ser un número entero, son
+los hilos hijos los que hacen una combinación de más, que se le quitará al hilo
+padre para compensar que es el último que empieza a computar. De esta forma
+se consigue hacer todas las combinaciones, sin repetir ninguna, y de forma 
+homogénea.
 
+Es importante destacar que en caso de que dos óptimos tengan el mismo coste, 
+se desempatará mirando cuál de ellos tiene el menor número de árboles talados.
+
+Para hacer los tests, se han generado de forma aleatoria 12 bosques, cada uno
+de 14 a 25 árboles (de forma incremental) y se ha realizado el cómputo para cada
+uno de ellos con 1,2,3 y 4 hilos. El resultado de los tiempos es el mostrado 
+en las gráficas. 
 
 \end{document}
 
