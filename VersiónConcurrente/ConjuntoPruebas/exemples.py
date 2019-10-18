@@ -6,7 +6,7 @@ def randomTreeNum():
     return random.randint(2,33) #De 2 a 32
 
 def randomTree():
-    return str(random.randint(0,10))+" "+str(random.randint(0,10))+" "+str(random.randint(0,10000))+" "+str(random.randint(0,10000))+"\n"
+    return str(random.randint(0,10))+" "+str(random.randint(0,10))+" "+str(random.randint(0,30))+" "+str(random.randint(0,30))+"\n"
 
 
 
