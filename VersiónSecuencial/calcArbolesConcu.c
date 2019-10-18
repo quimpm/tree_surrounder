@@ -94,6 +94,7 @@ float CalcularDistancia(int x1, int y1, int x2, int y2);
 int CalcularMaderaArbolesTalados(TListaArboles CombinacionArboles);
 int CalcularCosteCombinacion(TListaArboles CombinacionArboles);
 void MostrarArboles(TListaArboles CombinacionArboles);
+TListaArboles copiarTListaArboles(TListaArboles*  listaArboles_1);
 
 
 
@@ -102,8 +103,9 @@ int main(int argc, char *argv[])
 {
 	TListaArboles Optimo;
 
-	if (argc<2 || argc>5)
-		printf("Error Argumentos. Usage: CalcArboles <Fichero_Entrada> <Numero_Threads>[<Fichero_Salida>]");
+	if (argc<3 || argc>5)
+		printf("Error Argumentos. Usage: CalcArboles <Fichero_Entrada> <Numero_Threads>[<Fichero_Salida>]\n");
+		exit(1);
 
 	if (!LeerFicheroEntrada(argv[1]))
 	{
@@ -272,7 +274,7 @@ TListaArboles CalcularCercaOptima(int n_threads)
 	/* Bucle que hace el join de todos los hilos hijo y almacena el resultado del optimo */
 	for(i=0;i<ch_threads;i++)
 	{
-		if( pthread_join(tid[i], &result[i]) != 0 ){
+		if(pthread_join(tid[i], &result[i]) != 0 ){
 				perror("Error joining the thread");
 			}
 		TListaArboles* current = result[i];
@@ -284,18 +286,8 @@ TListaArboles CalcularCercaOptima(int n_threads)
 	}
 
 	/* Guarda el optimo en alcance local para poder liberar la memoria reservada con malloc */
-	TListaArboles local_optimal;
-	for(i = 0; i < sizeof(optimal->Arboles)/sizeof(optimal->Arboles[0]); i++){
-		local_optimal.Arboles[i] = optimal->Arboles[i];
-	}
-	local_optimal.Coste = optimal->Coste;
-	local_optimal.CosteArbolesCortados = optimal->CosteArbolesCortados;
-	local_optimal.CosteArbolesRestantes = optimal->CosteArbolesRestantes;
-	local_optimal.LongitudCerca = optimal->LongitudCerca;
-	local_optimal.MaderaSobrante = optimal->MaderaSobrante;
-	local_optimal.NumArboles = optimal->NumArboles;
-
-
+	TListaArboles local_optimal = copiarTListaArboles(optimal);
+	
 	/* Liberar espacio reservado por cada parámetro de retorno (reservado en CalcularCombinacionOptima) */
 	for(i=0; i < n_threads; i++){
 		free(result[i]);
@@ -304,6 +296,19 @@ TListaArboles CalcularCercaOptima(int n_threads)
 	return local_optimal;
 }
 
+TListaArboles copiarTListaArboles(TListaArboles*  listaArboles_1){
+	TListaArboles listaArboles_2;
+	for(int i = 0; i < sizeof(listaArboles_1->Arboles)/sizeof(listaArboles_1->Arboles[0]);i++){
+		listaArboles_2.Arboles[i] = listaArboles_1->Arboles[i];
+	}
+	listaArboles_2.Coste = listaArboles_1->Coste;
+	listaArboles_2.CosteArbolesCortados = listaArboles_1->CosteArbolesCortados;
+	listaArboles_2.CosteArbolesRestantes = listaArboles_1->CosteArbolesRestantes;
+	listaArboles_2.LongitudCerca = listaArboles_1->LongitudCerca;
+	listaArboles_2.MaderaSobrante = listaArboles_1->MaderaSobrante;
+	listaArboles_2.NumArboles = listaArboles_1->NumArboles;
+	return listaArboles_2;
+}
 
 void OrdenarArboles()
 {
