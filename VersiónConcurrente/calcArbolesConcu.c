@@ -102,12 +102,14 @@ TListaArboles copiarTListaArboles(TListaArboles*  listaArboles_1);
 
 int main(int argc, char *argv[])
 {
+	
 	TListaArboles Optimo;
 
 	if (argc<3 || argc>5)
+	{
 		printf("Error Argumentos. Usage: CalcArboles <Fichero_Entrada> <Numero_Threads>[<Fichero_Salida>]\n");
 		exit(1);
-
+	}
 	if (!LeerFicheroEntrada(argv[1]))
 	{
 		printf("Error lectura fichero entrada.\n");
@@ -141,6 +143,7 @@ bool LeerFicheroEntrada(char *PathFicIn)
 {
 	FILE *FicIn;
 	int a;
+	
 
 	FicIn=fopen(PathFicIn,"r");
 	if (FicIn==NULL)
